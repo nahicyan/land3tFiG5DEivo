@@ -1,0 +1,11 @@
+.menu-link {
+  font-size: 16px;
+  color: #2A3B2D;
+  text-decoration: none;
+  font-family: "Playfair Display", serif;
+  transition: color 0.2s ease;
+}
+
+.menu-link:hover {
+  color: #A67F5B;
+}

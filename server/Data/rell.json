@@ -1,0 +1,134 @@
+[
+{
+    "users": [
+      {
+        "id": "user1",
+        "name": "John Doe",
+        "email": "johndoe@example.com",
+        "image": "https://example.com/johndoe.jpg"
+      },
+      {
+        "id": "user2",
+        "name": "Jane Smith",
+        "email": "janesmith@example.com",
+        "image": "https://example.com/janesmith.jpg"
+      }
+    ],
+    "residencies": [
+      {
+        "id": "residency1",
+        "ownerId": 1,
+        "title": "Modern Apartment",
+        "description": "A beautiful modern apartment in the heart of the city.",
+        "address": "123 Main Street",
+        "zip": "12345",
+        "city": "Metropolis",
+        "country": "USA",
+        "image": "https://example.com/apartment.jpg",
+        "askingPrice": 500000,
+        "minPrice": 450000,
+        "facilities": {
+          "bedrooms": 3,
+          "bathrooms": 2,
+          "parking": 1
+        },
+        "userEmail": "johndoe@example.com",
+        "status": "Available",
+        "flyer": "https://example.com/apartment-flyer.pdf",
+        "propertyAddress": "123 Main Street, Metropolis, USA",
+        "apnOrPin": "APN-001",
+        "sqft": 1200,
+        "acre": 0.5,
+        "zoning": "Residential",
+        "utilities": {
+          "water": true,
+          "electricity": true,
+          "gas": true
+        },
+        "roadCondition": "Good",
+        "restrictions": "No subletting",
+        "mobileHomeFriendly": false,
+        "hoaPoa": "No",
+        "floodplain": "No",
+        "hoaFee": null,
+        "notes": "Close to public transport."
+      },
+      {
+        "id": "residency2",
+        "ownerId": 2,
+        "title": "Luxury Villa",
+        "description": "A spacious luxury villa with a private pool and garden.",
+        "address": "456 Ocean Drive",
+        "zip": "67890",
+        "city": "Seaside",
+        "country": "USA",
+        "image": "https://example.com/villa.jpg",
+        "askingPrice": 1200000,
+        "minPrice": 1100000,
+        "facilities": {
+          "bedrooms": 5,
+          "bathrooms": 4,
+          "parking": 2,
+          "pool": true
+        },
+        "userEmail": "janesmith@example.com",
+        "status": "Available",
+        "flyer": "https://example.com/villa-flyer.pdf",
+        "propertyAddress": "456 Ocean Drive, Seaside, USA",
+        "apnOrPin": "APN-002",
+        "sqft": 3500,
+        "acre": 1.5,
+        "zoning": "Residential",
+        "utilities": {
+          "water": true,
+          "electricity": true,
+          "gas": true
+        },
+        "roadCondition": "Excellent",
+        "restrictions": "No commercial use",
+        "mobileHomeFriendly": false,
+        "hoaPoa": "Yes",
+        "floodplain": "No",
+        "hoaFee": "Details available upon request",
+        "notes": "Located in a premium neighborhood."
+      }
+    ],
+    "buyers": [
+      {
+        "id": "buyer1",
+        "email": "buyer1@example.com",
+        "phone": "123-456-7890",
+        "buyerType": "EndBuyer",
+        "firstName": "Alice",
+        "lastName": "Johnson",
+        "offers": [
+          {
+            "propertyId": "residency1",
+            "offeredPrice": 480000,
+            "timestamp": "2024-12-31T12:00:00Z"
+          },
+          {
+            "propertyId": "residency2",
+            "offeredPrice": 1150000,
+            "timestamp": "2024-12-31T15:00:00Z"
+          }
+        ]
+      },
+      {
+        "id": "buyer2",
+        "email": "buyer2@example.com",
+        "phone": "987-654-3210",
+        "buyerType": "Investor",
+        "firstName": "Bob",
+        "lastName": "Williams",
+        "offers": [
+          {
+            "propertyId": "residency2",
+            "offeredPrice": 1180000,
+            "timestamp": "2024-12-31T16:00:00Z"
+          }
+        ]
+      }
+    ]
+  }
+]

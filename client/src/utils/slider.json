@@ -1,0 +1,45 @@
+[
+  {
+    "name": "Sunny Acres Ranch",
+    "askingPrice": "150,000",
+    "detail": "123 Sunshine Road, Austin, TX 78701",
+    "image": "./land1.jpg"
+  },
+  {
+    "name": "Evergreen Valley Estate",
+    "askingPrice": "250,000",
+    "detail": "456 Forest Lane, Denver, CO 80202",
+    "image": "./land2.jpg"
+  },
+  {
+    "name": "Willow Creek Meadow",
+    "askingPrice": "75,000",
+    "detail": "789 Willow Street, Lexington, KY 40507",
+    "image": "./land3.jpg"
+  },
+  {
+    "name": "Blue Ridge Hills",
+    "price": "320,000",
+    "detail": "321 Mountain View Drive, Asheville, NC 28801",
+    "image": "./land4.jpg"
+  },
+  {
+    "name": "Lakeside Retreat",
+    "price": "200,000",
+    "detail": "987 Lakeshore Avenue, Madison, WI 53703",
+    "image": "./land5.jpg"
+  },
+  {
+    "name": "Golden Prairie Fields",
+    "price": "140,000",
+    "detail": "654 Prairie Road, Wichita, KS 67202",
+    "image": "./land6.jpg"
+  },
+  {
+    "name": "Pinewood Forest",
+    "price": "180,000",
+    "detail": "543 Pine Street, Portland, OR 97201",
+    "image": "./land7.jpg"
+  }
+]
+                          

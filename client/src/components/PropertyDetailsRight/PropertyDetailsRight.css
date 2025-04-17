@@ -1,0 +1,16 @@
+/* Adjust width based on media queries if needed */
+.property-row__right {
+    width: 33.6rem; /* or 38rem at larger breakpoints if you like */
+    display: flex;
+    flex-direction: column;
+  }
+  
+  /* This class makes the element sticky within its container */
+  .property-row__right .sticky-offer {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    /* Optionally add a background so it doesn't show content scrolling behind */
+    background: #fff;
+  }
+  

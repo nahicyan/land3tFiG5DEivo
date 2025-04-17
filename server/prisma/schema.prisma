@@ -1,0 +1,438 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+//--------------------- Users ----------------------//
+
+model User {
+  id               String      @id @default(auto()) @map("_id") @db.ObjectId
+  auth0Id          String      @unique
+  firstName        String?
+  lastName         String?
+  email            String      @unique
+  lastLoginAt      DateTime?
+  loginCount       Int         @default(0)
+  isActive         Boolean     @default(true)
+  
+
+  // For auditing - track who created/modified records
+  createdResidencies    Residency[]      @relation("CreatedByRelation")
+  updatedResidencies    Residency[]      @relation("UpdatedByRelation")
+  createdBuyers         Buyer[]          @relation("CreatedByBuyerRelation")
+  updatedBuyers         Buyer[]          @relation("UpdatedByBuyerRelation")
+  createdDeals          Deal[]           @relation("CreatedByDealRelation")
+  updatedDeals          Deal[]           @relation("UpdatedByDealRelation")
+  updatedQualifications Qualification[]  @relation("UpdatedByQualificationRelation")
+  
+  // Track system changes by this user
+  activityLogs ActivityLog[] @relation("UserActivityLogs")
+
+  // Add these timestamp fields
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+//---------------------- Activity Log ----------------------//
+
+model ActivityLog {
+  id          String @id @default(auto()) @map("_id") @db.ObjectId
+  entityType  String // 'Residency', 'Buyer', 'Deal', etc.
+  entityId    String
+  actionType  String // 'create', 'update', 'delete', 'view', etc.
+  userId      String @db.ObjectId
+  user        User   @relation("UserActivityLogs", fields: [userId], references: [id])
+  
+  // Store the changes as JSON
+  previousData Json?
+  newData      Json?
+  
+  details     String?
+  ipAddress   String?
+  userAgent   String?
+  
+  createdAt   DateTime @default(now())
+  
+  @@index([entityType, entityId])
+  @@index([userId])
+  @@index([actionType])
+  @@index([createdAt])
+}
+
+//---------------------- Property ----------------------//
+
+model Residency {
+  id        String @id @default(auto()) @map("_id") @db.ObjectId
+  
+  // Owner relationship changed to use userId instead of email
+  ownerId   Int?
+  
+  // Audit fields
+  createdById  String  @db.ObjectId
+  createdBy    User    @relation("CreatedByRelation", fields: [createdById], references: [id])
+  updatedById  String? @db.ObjectId
+  updatedBy    User?   @relation("UpdatedByRelation", fields: [updatedById], references: [id])
+  
+  // Track all modifications
+  modificationHistory Json? // Array of modification events
+  
+  deals     Deal[]
+
+  // Property Details
+  // marketingOwnerId    Int?     This is the marketing ID, not changing as requested
+  title              String
+  featured           String?
+  featuredWeight     Int?
+  description        String
+  legalDescription   String?
+  direction          String?
+  status             String?
+  type               String?
+  landType           String[]
+  zoning             String?
+  restrictions       String?
+  mobileHomeFriendly String?
+  hoaPoa             String?
+  hoaFee             Float?
+  hoaPaymentTerms    String?
+  survey             String?
+  notes              String?
+
+  // Address and Location
+  apnOrPin      String  @unique // APN/PIN must be unique
+  streetAddress String
+  city          String
+  county        String
+  state         String
+  zip           String
+  latitude      Float // Latitude for geolocation
+  longitude     Float // Longitude for geolocation
+  area          String
+  landIdLink    String?
+
+  // Physical Attributes
+  sqft      Int
+  acre      Float?
+  imageUrls Json?
+
+  // Pricing
+  askingPrice Float
+  minPrice    Float
+  disPrice    Float?
+
+  // Financing & Pricing Calculations
+  financing           String?
+  tax                 Float?
+  serviceFee          Float?
+  term                Int?
+  hoaMonthly          Float?
+  interestOne         Float?
+  interestTwo         Float?
+  interestThree       Float?
+  monthlyPaymentOne   Float?
+  monthlyPaymentTwo   Float?
+  monthlyPaymentThree Float?
+  downPaymentOne      Float?
+  downPaymentTwo      Float?
+  downPaymentThree    Float?
+  loanAmountOne       Float?
+  loanAmountTwo       Float?
+  loanAmountThree     Float?
+  purchasePrice       Float?
+  financedPrice       Float?
+
+  // Utilities and Infrastructure
+  water         String?
+  sewer         String?
+  electric      String?
+  roadCondition String?
+  floodplain    String?
+
+  // Miscellaneous
+  ltag      String?
+  rtag      String?
+  landId    String
+  viewCount Int?    @default(0) // View count for unique views
+
+  // Timestamps
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Unique Constraints
+  @@unique(fields: [apnOrPin, streetAddress, city, state]) // Modified to remove userEmail
+  @@unique(fields: [latitude, longitude]) // Ensure no duplicate geolocations
+}
+
+//---------------------- Offer ----------------------//
+
+model Offer {
+  id           String   @id @default(auto()) @map("_id") @db.ObjectId
+  propertyId   String
+  offeredPrice Float
+  timestamp    DateTime @default(now())
+  buyerId      String   @db.ObjectId
+  buyer        Buyer    @relation("BuyerOffers", fields: [buyerId], references: [id])
+  
+  // Audit fields
+  createdById  String?  @db.ObjectId
+  updatedById  String?  @db.ObjectId
+  
+  // Track modifications
+  modificationHistory Json?
+}
+
+//---------------------- Buyer ----------------------//
+
+model Buyer {
+  id             String          @id @default(auto()) @map("_id") @db.ObjectId
+  email          String          @unique
+  phone          String?         @unique
+  buyerType      BuyerType?
+  firstName      String
+  lastName       String?
+  source         String?
+  preferredAreas String[]
+  offers         Offer[]         @relation("BuyerOffers")
+  auth0Id        String?         @unique // Link to Auth0 if the buyer is also a system user
+  
+  // Audit fields
+  createdById    String?         @db.ObjectId
+  createdBy      User?           @relation("CreatedByBuyerRelation", fields: [createdById], references: [id])
+  updatedById    String?         @db.ObjectId
+  updatedBy      User?           @relation("UpdatedByBuyerRelation", fields: [updatedById], references: [id])
+  
+  // Track modifications
+  modificationHistory Json?
+  
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+  deals          Deal[]
+  activities     BuyerActivity[] @relation("BuyerActivities")
+}
+
+enum BuyerType {
+  CashBuyer
+  Builder
+  Developer
+  Realtor
+  Investor
+  Wholesaler
+}
+
+//---------------------- Activity ----------------------//
+
+model BuyerActivity {
+  id              String   @id @default(auto()) @map("_id") @db.ObjectId
+  buyerId         String   @db.ObjectId
+  buyer           Buyer    @relation("BuyerActivities", fields: [buyerId], references: [id])
+  eventType       String // e.g., property_view, click, search, offer_submission, page_view, session_start
+  timestamp       DateTime @default(now())
+  eventData       Json? // Flexible structure for different event types
+  sessionId       String? // To group activities in a session
+  page            String? // URL or path where the event occurred
+  propertyId      String? // Reference to property when relevant
+  interactionType String? // Type of interaction (e.g., button, link, etc.)
+  ipAddress       String? // IP address for security tracking
+  userAgent       String? // Browser/device info
+
+  // Create indexes for faster lookups
+  @@index([buyerId])
+  @@index([eventType])
+  @@index([timestamp])
+  @@index([propertyId])
+  @@index([sessionId])
+}
+
+//---------------------- Qualifcations----------------------//
+
+model Qualification {
+  id             String  @id @default(auto()) @map("_id") @db.ObjectId
+  propertyId     String? // ID of the property being qualified for
+  propertyPrice  Float // Asking or financed price
+  ownerId        Int?
+  loanAmount     Float? // Selected loan amount
+  interestRate   Float? // Selected interest rate
+  monthlyPayment Float? // Calculated monthly payment
+  downPayment    Float? // Selected down payment amount
+  term           Int? // Loan term in months
+
+
+// Audit fields
+ updatedById    String?  @db.ObjectId
+ updatedBy      User?    @relation("UpdatedByQualificationRelation", fields: [updatedById], references: [id])
+  
+  // Track modifications
+  modificationHistory Json?
+
+  // Survey answers
+  language               String?
+  homeUsage              String? // Primary residence, Secondary/Vacation, Investment
+  realEstateAgent        String? // Yes/No
+  homePurchaseTiming     String? // When they plan to purchase
+  currentHomeOwnership   String? // Current living situation
+  currentOnAllPayments   String? // Yes/No
+  employmentStatus       String? // Employed, Self-Employed, Not Employed, Retired
+  verifyIncome           String? // Yes/No can verify income
+  incomeHistory          String? // Has 2-year income history
+  openCreditLines        String? // Yes/No has open credit lines
+  totalMonthlyPayments   Float? // Their current debt payments
+  grossAnnualIncome      String? // Income range
+  foreclosureForbearance String? // Yes/No in foreclosure
+  declaredBankruptcy     String? // Yes/No bankruptcy
+  currentCreditScore     String? // Credit score range
+  liensOrJudgments       String? // Yes/No has liens
+
+  // Personal information
+  firstName String
+  lastName  String
+  email     String
+  phone     String
+
+  // Status
+  qualified              Boolean @default(false)
+  disqualificationReason String?
+
+  // Property info passed from Landivo
+  propertyAddress String?
+  propertyCity    String?
+  propertyState   String?
+  propertyZip     String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+//---------------------- Email List ----------------------//
+
+model BuyerList {
+  id            String    @id @default(auto()) @map("_id") @db.ObjectId
+  name          String
+  description   String?
+  createdBy     String?   @db.ObjectId
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  lastEmailDate DateTime?
+
+  // Criteria for automatic membership
+  criteria Json? // Stores areas, buyerTypes, isVIP, etc.
+
+  // Manual members (buyers explicitly added to this list)
+  buyerIds String[] @db.ObjectId
+
+  // Additional metadata
+  isDefault Boolean @default(false)
+  color     String? // Optional color coding for the list
+  
+  // Track modifications
+  modificationHistory Json?
+}
+
+//---------------------- Deals ----------------------//
+
+model Deal {
+  id         String    @id @default(auto()) @map("_id") @db.ObjectId
+  buyerId    String    @db.ObjectId
+  buyer      Buyer     @relation(fields: [buyerId], references: [id])
+  propertyId String    @db.ObjectId
+  property   Residency @relation(fields: [propertyId], references: [id])
+
+  // Audit fields
+  createdById  String   @db.ObjectId
+  createdBy    User     @relation("CreatedByDealRelation", fields: [createdById], references: [id])
+  updatedById  String?  @db.ObjectId
+  updatedBy    User?    @relation("UpdatedByDealRelation", fields: [updatedById], references: [id])
+  
+  // Track modifications
+  modificationHistory Json?
+
+  // Core financial details
+  purchasePrice  Float
+  salePrice      Float
+  downPayment    Float?
+  loanAmount     Float?
+  interestRate   Float?
+  term           Int // In months
+  monthlyPayment Float?
+
+  // Acquisition details
+  closingCosts       Float?
+  transferTaxes      Float?
+  appraisalValue     Float?
+  loanOriginationFee Float?
+  financingType      String? // "Owner", "Bank", "Cash", etc.
+
+  // Status tracking
+  status         DealStatus @default(ACTIVE)
+  startDate      DateTime
+  completionDate DateTime?
+
+  // Payment tracking
+  paymentsReceived Int   @default(0)
+  paymentsOnTime   Int   @default(0)
+  paymentsLate     Int   @default(0)
+  totalPaidToDate  Float @default(0)
+  principalPaid    Float @default(0)
+  interestPaid     Float @default(0)
+
+  // Performance metrics
+  totalExpectedRevenue Float
+  currentRevenue       Float  @default(0)
+  profitLoss           Float  @default(0)
+  capRate              Float?
+  cashOnCashReturn     Float?
+
+  // Additional data
+  notes     String?
+  documents String[] @default([])
+
+  // Payment history
+  payments Payment[]
+
+  // Timestamps
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Payment {
+  id     String @id @default(auto()) @map("_id") @db.ObjectId
+  dealId String @db.ObjectId
+  deal   Deal   @relation(fields: [dealId], references: [id])
+
+  paymentNumber Int
+  amount        Float
+  dueDate       DateTime
+  paymentDate   DateTime?
+  status        PaymentStatus @default(PENDING)
+  principal     Float
+  interest      Float
+  lateFee       Float?
+  
+  // Audit fields
+  createdById  String?  @db.ObjectId
+  updatedById  String?  @db.ObjectId
+  
+  // Track modifications
+  modificationHistory Json?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+enum DealStatus {
+  PENDING
+  ACTIVE
+  COMPLETED
+  DEFAULTED
+  CANCELLED
+}
+
+enum PaymentStatus {
+  PENDING
+  PAID
+  LATE
+  MISSED
+}
