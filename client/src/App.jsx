@@ -31,7 +31,7 @@ import CreateUser from "./pages/CreateUser/CreateUser";
 import ScrollToTop from "./components/ScrollToTop/ScrollToTop";
 import Sell from "./pages/Sell/Sell";
 import Qualify from "./pages/Qualify/Qualify";
-import AdminFinancing from "./components/AdminFinancing/AdminFinancing";
+import AdminFinancing from "./pages/AdminFinancing/AdminFinancing";
 import Subscription from "./pages/Subscription/Subscription";
 import VipSignupForm from "./pages/Subscription/VipSignupForm";
 import AdminUsers from "./pages/AdminUsers/AdminUsers";
