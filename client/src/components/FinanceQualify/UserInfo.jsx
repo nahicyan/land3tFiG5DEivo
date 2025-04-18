@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { parsePhoneNumber } from "libphonenumber-js";
+import { useAuth } from "@/components/hooks/useAuth";
+import { useVipBuyer } from '@/utils/VipBuyerContext';
 import { 
   Card, 
   CardContent 
@@ -25,6 +27,13 @@ export default function UserInfo({ surveyData, updateSurveyData, onSubmit, onBac
     phone: surveyData.phone || ""
   });
 
+  // Track if form has been populated to prevent multiple API calls
+  const [formPopulated, setFormPopulated] = useState(false);
+
+  // Get user data from Auth and VIP buyer contexts
+  const { user, isLoading } = useAuth();
+  const { isVipBuyer, vipBuyerData } = useVipBuyer();
+
   // State for the Dialog notification
   const [dialogOpen, setDialogOpen] = useState(false);
   const [dialogMessage, setDialogMessage] = useState("");
@@ -39,6 +48,90 @@ export default function UserInfo({ surveyData, updateSurveyData, onSubmit, onBac
       phone: surveyData.phone || ""
     });
   }, [surveyData]);
+
+  // Auto-populate user data when component mounts
+  useEffect(() => {
+    // Only populate if fields are empty and we haven't populated yet
+    if (!formPopulated && !isLoading && 
+        (!formData.firstName || !formData.lastName || !formData.email)) {
+      populateUserData();
+      setFormPopulated(true);
+    }
+  }, [user, isLoading, isVipBuyer, vipBuyerData, formData]);
+
+  // Function to populate user data with priority
+  const populateUserData = () => {
+    let newData = { ...formData };
+    let dataChanged = false;
+
+    // Priority 1: Use VIP buyer data if available
+    if (isVipBuyer && vipBuyerData) {
+      if (vipBuyerData.firstName && !newData.firstName) {
+        newData.firstName = vipBuyerData.firstName;
+        dataChanged = true;
+      }
+      
+      if (vipBuyerData.lastName && !newData.lastName) {
+        newData.lastName = vipBuyerData.lastName;
+        dataChanged = true;
+      }
+      
+      if (vipBuyerData.email && !newData.email) {
+        newData.email = vipBuyerData.email;
+        dataChanged = true;
+      }
+      
+      if (vipBuyerData.phone && !newData.phone) {
+        newData.phone = formatPhoneNumber(vipBuyerData.phone);
+        dataChanged = true;
+      }
+    }
+
+    // Priority 2: Fall back to Auth0 user data
+    if (user) {
+      // Try to extract name from Auth0 data
+      if (user.given_name && !newData.firstName) {
+        newData.firstName = user.given_name;
+        dataChanged = true;
+      }
+      
+      if (user.family_name && !newData.lastName) {
+        newData.lastName = user.family_name;
+        dataChanged = true;
+      }
+      
+      // If no given/family name, try to parse from name
+      if ((!newData.firstName || !newData.lastName) && user.name) {
+        const nameParts = user.name.split(' ');
+        if (nameParts.length > 0 && !newData.firstName) {
+          newData.firstName = nameParts[0];
+          dataChanged = true;
+        }
+        if (nameParts.length > 1 && !newData.lastName) {
+          newData.lastName = nameParts.slice(1).join(' ');
+          dataChanged = true;
+        }
+      }
+      
+      // Set email if available
+      if (user.email && !newData.email) {
+        newData.email = user.email;
+        dataChanged = true;
+      }
+    }
+
+    // Update form data if changes were made
+    if (dataChanged) {
+      setFormData(newData);
+      
+      // Update parent state with populated values
+      Object.entries(newData).forEach(([key, value]) => {
+        if (value && key in newData) {
+          updateSurveyData(key, value);
+        }
+      });
+    }
+  };
 
   // Handle input changes
   const handleChange = (e) => {
@@ -77,6 +170,8 @@ export default function UserInfo({ surveyData, updateSurveyData, onSubmit, onBac
   };
 
   const formatPhoneNumber = (input) => {
+    if (!input) return '';
+    
     // Strip all non-numeric characters
     const digitsOnly = input.replace(/\D/g, '');
     

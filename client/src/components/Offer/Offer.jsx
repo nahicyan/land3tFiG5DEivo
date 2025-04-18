@@ -1,11 +1,12 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { api } from "../../utils/api";
 import { parsePhoneNumber } from "libphonenumber-js";
 import ContactCard from "@/components/ContactCard/ContactCard";
-
+import { useAuth } from "@/components/hooks/useAuth";
+import { useVipBuyer } from '@/utils/VipBuyerContext';
 
 // ShadCN UI components
 import {
@@ -27,7 +28,6 @@ import {
 } from "@/components/ui/select";
 import {
   Dialog,
-  DialogTrigger,
   DialogContent,
   DialogHeader,
   DialogTitle,
@@ -51,11 +51,56 @@ export default function Offer({ propertyData }) {
   const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
+  
+  // Track if form has been populated to prevent multiple calls
+  const [formPopulated, setFormPopulated] = useState(false);
+
+  // Get user data from Auth and VIP buyer contexts
+  const { user } = useAuth();
+  const { isVipBuyer, vipBuyerData } = useVipBuyer();
 
   // State for the Dialog notification
   const [dialogOpen, setDialogOpen] = useState(false);
   const [dialogMessage, setDialogMessage] = useState("");
   const [dialogType, setDialogType] = useState("success"); // "success" or "warning"
+
+  // Auto-populate user data when component mounts
+  useEffect(() => {
+    if (!formPopulated) {
+      populateUserData();
+      setFormPopulated(true);
+    }
+  }, [user, isVipBuyer, vipBuyerData]);
+
+  // Function to populate user data with priority
+  const populateUserData = () => {
+    // Priority 1: Use VIP buyer data if available
+    if (isVipBuyer && vipBuyerData) {
+      setFirstName(vipBuyerData.firstName || "");
+      setLastName(vipBuyerData.lastName || "");
+      setEmail(vipBuyerData.email || "");
+      setPhone(formatPhoneNumber(vipBuyerData.phone || ""));
+      setBuyerType(vipBuyerData.buyerType || "");
+      return;
+    }
+
+    // Priority 2: Fall back to Auth0 user data
+    if (user) {
+      // Try to extract name from Auth0 data
+      if (user.given_name) setFirstName(user.given_name);
+      if (user.family_name) setLastName(user.family_name);
+      
+      // If no given/family name, try to parse from name
+      if (!user.given_name && !user.family_name && user.name) {
+        const nameParts = user.name.split(' ');
+        if (nameParts.length > 0) setFirstName(nameParts[0]);
+        if (nameParts.length > 1) setLastName(nameParts.slice(1).join(' '));
+      }
+      
+      // Set email if available
+      if (user.email) setEmail(user.email);
+    }
+  };
 
   // Format the offer price as the user types
   const handleOfferPriceChange = (e) => {
@@ -97,6 +142,8 @@ export default function Offer({ propertyData }) {
   };
 
   const formatPhoneNumber = (input) => {
+    if (!input) return '';
+    
     // Strip all non-numeric characters
     const digitsOnly = input.replace(/\D/g, '');
     
@@ -295,8 +342,8 @@ export default function Offer({ propertyData }) {
             </Button>
           </form>
           <div className="py-6">
-      <ContactCard />
-    </div>
+            <ContactCard />
+          </div>
         </CardContent>
       </Card>
 
