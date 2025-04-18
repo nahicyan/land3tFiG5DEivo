@@ -175,7 +175,7 @@ const Header = () => {
                         
                         <PermissionGuard permission={PERMISSIONS.WRITE_PROPERTIES}>
                           <Link 
-                            to="/agent/add-property"
+                            to="/admin/add-property"
                             className="block text-lg font-medium text-[#324c48] hover:text-[#D4A017] mt-2"
                           >
                             Add Property
@@ -307,7 +307,7 @@ const Header = () => {
                   <PermissionGuard permission={PERMISSIONS.WRITE_PROPERTIES}>
                     <DropdownMenuItem asChild>
                       <Link
-                        to="/agent/add-property"
+                        to="/admin/add-property"
                         className="text-[#324c48] hover:text-[#D4A017] cursor-pointer flex items-center"
                       >
                         <svg 

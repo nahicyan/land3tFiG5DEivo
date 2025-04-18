@@ -173,7 +173,7 @@ export default function QualificationsDashboard() {
 
   return (
     <div className="max-w-7xl mx-auto p-4">
-      <h1 className="text-3xl font-bold mb-8">Qualification Applications</h1>
+      <h1 className="text-3xl font-bold mb-8">Financing Applications</h1>
 
       <Tabs defaultValue="all" className="w-full">
         <TabsList>

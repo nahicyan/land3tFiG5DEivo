@@ -44,12 +44,12 @@ export default function AdminLayout() {
   const menuItems = [
     { text: "Dashboard", icon: <HomeIcon />, path: "/admin" },
     { text: "Properties", icon: <BusinessIcon />, path: "/admin/properties" },
-    { text: "Add Property", icon: <AddIcon />, path: "/agent/add-property" },
+    // { text: "Add Property", icon: <AddIcon />, path: "/admin/add-property" },
     { text: "Users", icon: <PeopleIcon />, path: "/admin/users" },
-    { text: "Financing Deals", icon: <AttachMoneyIcon />, path: "/admin/deals" },
+    { text: "Deals", icon: <AttachMoneyIcon />, path: "/admin/deals" },
     { text: "Buyers", icon: <PersonIcon />, path: "/admin/buyers" },
-    { text: "Buyer Lists", icon: <ViewListIcon />, path: "/admin/buyer-lists" },
-    { text: "Qualifications", icon: <AssessmentIcon />, path: "/admin/qualifications" },
+    { text: "Email Lists", icon: <ViewListIcon />, path: "/admin/buyer-lists" },
+    { text: "Financing Applications", icon: <AssessmentIcon />, path: "/admin/financing" },
   ];
 
   return (

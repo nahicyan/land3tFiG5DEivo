@@ -54,7 +54,7 @@ export function PropertyActions({
   };
 
   const handleEditProperty = () => {
-    navigate(`/agent/edit-property/${property.id}`);
+    navigate(`/admin/edit-property/${property.id}`);
   };
 
   const handleQuickEdit = () => {

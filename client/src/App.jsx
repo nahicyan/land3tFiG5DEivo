@@ -31,7 +31,7 @@ import CreateUser from "./pages/CreateUser/CreateUser";
 import ScrollToTop from "./components/ScrollToTop/ScrollToTop";
 import Sell from "./pages/Sell/Sell";
 import Qualify from "./pages/Qualify/Qualify";
-import QualificationsDashboard from "./components/QualificationsDashboard/QualificationsDashboard";
+import AdminFinancing from "./components/AdminFinancing/AdminFinancing";
 import Subscription from "./pages/Subscription/Subscription";
 import VipSignupForm from "./pages/Subscription/VipSignupForm";
 import AdminUsers from "./pages/AdminUsers/AdminUsers";
@@ -150,6 +150,8 @@ function App() {
                           }
                         >
                           <Route index element={<Admin />} />
+                          <Route path="add-property" element={<AddProperty />} />
+                          <Route path="edit-property/:propertyId" element={<EditProperty />} />
                           
                           {/* New Properties Management Route */}
                           {/* <Route
@@ -270,7 +272,7 @@ function App() {
                             }
                           />
                           {/* Qualification dashboard - security disabled */}
-                          <Route path="qualifications" element={<QualificationsDashboard />} />
+                          <Route path="financing" element={<AdminFinancing />} />
                           
                           {/* Financing applications - security disabled */}
                           <Route path="financing/applications" element={<OfferTable />} />
@@ -289,8 +291,7 @@ function App() {
                             </ProtectedRoute>
                           }
                         >
-                          <Route path="add-property" element={<AddProperty />} />
-                          <Route path="edit-property/:propertyId" element={<EditProperty />} />
+
                         </Route>
                       </Routes>
                     </ActivityTrackingProvider>

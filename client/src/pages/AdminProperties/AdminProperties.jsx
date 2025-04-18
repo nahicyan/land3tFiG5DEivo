@@ -95,12 +95,12 @@ export default function AdminProperties() {
 
   // Handle creating a new property
   const handleCreateProperty = () => {
-    navigate("/agent/add-property");
+    navigate("/admin/add-property");
   };
 
   // Handle editing a property
   const handleEditProperty = (propertyId) => {
-    navigate(`/agent/edit-property/${propertyId}`);
+    navigate(`/admin/edit-property/${propertyId}`);
   };
 
   // Handle view property details
