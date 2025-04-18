@@ -17,6 +17,13 @@ import {
 } from "../controllers/buyerCntrl.js";
 import { getBuyerByAuth0Id } from '../controllers/buyerCntrl.js';
 
+import { 
+  // ... existing imports
+  updateOffer,
+  getAllOffers,
+  getOfferStats
+} from "../controllers/buyerCntrl.js";
+
 const router = express.Router();
 
 // Route to create or update an offer
@@ -43,5 +50,11 @@ router.get("/byArea/:areaId", getBuyersByArea);
 router.post("/sendEmail", sendEmailToBuyers);
 router.post("/import", importBuyersFromCsv);
 router.get("/stats", getBuyerStats);
+
+// New offers management routes
+router.get("/offers/all", getAllOffers);
+router.get("/offers/stats", getOfferStats);
+router.put("/offers/:id", updateOffer);
+
 
 export { router as buyerRoute };

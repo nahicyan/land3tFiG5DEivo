@@ -885,3 +885,386 @@ export const getBuyerByAuth0Id = asyncHandler(async (req, res) => {
     });
   }
 });
+
+
+
+
+
+
+
+
+
+
+
+
+// Add these functions to server/controllers/buyerCntrl.js
+
+/**
+ * Update an offer's status
+ * @route PUT /api/buyer/offers/:id
+ * @access Private - Admin only
+ */
+export const updateOffer = asyncHandler(async (req, res) => {
+  const { id } = req.params;
+  const { offerStatus, counterPrice } = req.body;
+  
+  if (!id) {
+    return res.status(400).json({ message: "Offer ID is required" });
+  }
+  
+  if (!offerStatus) {
+    return res.status(400).json({ message: "Offer status is required" });
+  }
+  
+  try {
+    // Check if offer exists
+    const existingOffer = await prisma.offer.findUnique({
+      where: { id },
+      include: {
+        buyer: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            email: true
+          }
+        }
+      }
+    });
+    
+    if (!existingOffer) {
+      return res.status(404).json({ message: "Offer not found" });
+    }
+    
+    // Validate counter offer price if status is COUNTERED
+    if (offerStatus === 'COUNTERED' && (!counterPrice || parseFloat(counterPrice) <= 0)) {
+      return res.status(400).json({ message: "Counter offer requires a valid price" });
+    }
+    
+    // Build update data
+    const updateData = {
+      offerStatus,
+      // If we have modification history in our schema, add to it
+      ...(existingOffer.modificationHistory ? {
+        modificationHistory: [
+          ...(existingOffer.modificationHistory || []),
+          {
+            timestamp: new Date(),
+            fromStatus: existingOffer.offerStatus,
+            toStatus: offerStatus,
+            ...(offerStatus === 'COUNTERED' ? { counterPrice } : {}),
+            updatedBy: req.userId || 'unknown'
+          }
+        ]
+      } : {})
+    };
+    
+    // Add counterOfferPrice field if we're countering
+    if (offerStatus === 'COUNTERED' && counterPrice) {
+      // We might need to add field to schema to store this, or we can use the modification history
+      // For now, we'll just keep it in memory for the response
+    }
+    
+    // Update the offer
+    const updatedOffer = await prisma.offer.update({
+      where: { id },
+      data: updateData,
+      include: {
+        buyer: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            email: true
+          }
+        }
+      }
+    });
+    
+    // In a real application, you would send email notifications here
+    // For example:
+    // if (offerStatus === 'ACCEPTED') {
+    //   sendOfferAcceptedEmail(updatedOffer);
+    // } else if (offerStatus === 'REJECTED') {
+    //   sendOfferRejectedEmail(updatedOffer);
+    // } else if (offerStatus === 'COUNTERED') {
+    //   sendOfferCounteredEmail(updatedOffer, counterPrice);
+    // }
+    
+    res.status(200).json({
+      message: `Offer has been ${offerStatus.toLowerCase()} successfully`,
+      offer: updatedOffer,
+      ...(offerStatus === 'COUNTERED' ? { counterPrice } : {})
+    });
+    
+  } catch (err) {
+    console.error("Error updating offer:", err);
+    res.status(500).json({
+      message: "An error occurred while updating the offer",
+      error: err.message
+    });
+  }
+});
+
+/**
+ * Get all offers with filtering options
+ * @route GET /api/buyer/offers/all
+ * @access Private - Admin only
+ */
+export const getAllOffers = asyncHandler(async (req, res) => {
+  const { 
+    status, 
+    search,
+    startDate,
+    endDate,
+    propertyId,
+    page = 1,
+    limit = 20
+  } = req.query;
+  
+  try {
+    // Build filter object
+    const filter = {};
+    
+    // Filter by status
+    if (status && status !== 'ALL') {
+      filter.offerStatus = status;
+    }
+    
+    // Filter by property
+    if (propertyId) {
+      filter.propertyId = propertyId;
+    }
+    
+    // Filter by date range
+    if (startDate || endDate) {
+      filter.timestamp = {};
+      
+      if (startDate) {
+        filter.timestamp.gte = new Date(startDate);
+      }
+      
+      if (endDate) {
+        const endDateObj = new Date(endDate);
+        endDateObj.setHours(23, 59, 59, 999); // End of day
+        filter.timestamp.lte = endDateObj;
+      }
+    }
+    
+    // Handle search (more complex because it spans multiple related fields)
+    let searchQuery = undefined;
+    if (search) {
+      const searchTerm = search.trim();
+      
+      // This will depend on your Prisma setup and your database
+      // Using MongoDB-style query here, but adapt to your database
+      searchQuery = {
+        OR: [
+          {
+            buyer: {
+              OR: [
+                { firstName: { contains: searchTerm, mode: 'insensitive' } },
+                { lastName: { contains: searchTerm, mode: 'insensitive' } },
+                { email: { contains: searchTerm, mode: 'insensitive' } },
+                { phone: { contains: searchTerm } }
+              ]
+            }
+          },
+          // If you can search by property fields, add them here
+          // {
+          //   property: {
+          //     OR: [
+          //       { title: { contains: searchTerm, mode: 'insensitive' } },
+          //       { streetAddress: { contains: searchTerm, mode: 'insensitive' } }
+          //     ]
+          //   }
+          // }
+        ]
+      };
+    }
+    
+    // Combine filters
+    const finalFilter = searchQuery ? { ...filter, ...searchQuery } : filter;
+    
+    // Get total count for pagination
+    const totalCount = await prisma.offer.count({
+      where: finalFilter
+    });
+    
+    // Get paginated, filtered offers
+    const offers = await prisma.offer.findMany({
+      where: finalFilter,
+      include: {
+        buyer: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            email: true,
+            phone: true
+          }
+        }
+        // You can also include property details here if needed
+        // property: {
+        //   select: {
+        //     id: true,
+        //     title: true,
+        //     streetAddress: true,
+        //     city: true,
+        //     state: true
+        //   }
+        // }
+      },
+      orderBy: {
+        timestamp: 'desc'
+      },
+      skip: (parseInt(page) - 1) * parseInt(limit),
+      take: parseInt(limit)
+    });
+    
+    // Return formatted response
+    res.status(200).json({
+      offers,
+      pagination: {
+        total: totalCount,
+        page: parseInt(page),
+        limit: parseInt(limit),
+        pages: Math.ceil(totalCount / parseInt(limit))
+      }
+    });
+    
+  } catch (err) {
+    console.error("Error fetching offers:", err);
+    res.status(500).json({
+      message: "An error occurred while fetching offers",
+      error: err.message
+    });
+  }
+});
+
+/**
+ * Get offer statistics
+ * @route GET /api/buyer/offers/stats
+ * @access Private - Admin only
+ */
+export const getOfferStats = asyncHandler(async (req, res) => {
+  try {
+    // Get total counts by status
+    const statusCounts = await prisma.offer.groupBy({
+      by: ['offerStatus'],
+      _count: {
+        id: true
+      }
+    });
+    
+    // Convert to a more usable format
+    const stats = {
+      total: 0,
+      byStatus: {}
+    };
+    
+    // Populate stats with count for each status
+    statusCounts.forEach(item => {
+      const status = item.offerStatus || 'PENDING';
+      stats.byStatus[status] = item._count.id;
+      stats.total += item._count.id;
+    });
+    
+    // Get recent offer trend (count by day for last 30 days)
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+    
+    const recentOffers = await prisma.offer.findMany({
+      where: {
+        timestamp: {
+          gte: thirtyDaysAgo
+        }
+      },
+      select: {
+        timestamp: true,
+        offerStatus: true
+      },
+      orderBy: {
+        timestamp: 'desc'
+      }
+    });
+    
+    // Group by day
+    const trendByDay = {};
+    recentOffers.forEach(offer => {
+      const date = offer.timestamp.toISOString().split('T')[0];
+      if (!trendByDay[date]) {
+        trendByDay[date] = { total: 0 };
+      }
+      trendByDay[date].total++;
+      
+      // Count by status
+      const status = offer.offerStatus || 'PENDING';
+      if (!trendByDay[date][status]) {
+        trendByDay[date][status] = 0;
+      }
+      trendByDay[date][status]++;
+    });
+    
+    // Format for the response
+    stats.trend = Object.keys(trendByDay).map(date => ({
+      date,
+      ...trendByDay[date]
+    })).sort((a, b) => a.date.localeCompare(b.date));
+    
+    // Get top properties with most offers
+    const topProperties = await prisma.offer.groupBy({
+      by: ['propertyId'],
+      _count: {
+        id: true
+      },
+      orderBy: {
+        _count: {
+          id: 'desc'
+        }
+      },
+      take: 5
+    });
+    
+    // Get property details for these properties
+    const propertyIds = topProperties.map(item => item.propertyId);
+    const properties = await prisma.residency.findMany({
+      where: {
+        id: {
+          in: propertyIds
+        }
+      },
+      select: {
+        id: true,
+        title: true,
+        streetAddress: true,
+        city: true,
+        state: true
+      }
+    });
+    
+    // Map property details to offer counts
+    stats.topProperties = topProperties.map(item => {
+      const property = properties.find(p => p.id === item.propertyId) || { 
+        title: 'Unknown Property',
+        streetAddress: 'Unknown Address',
+        city: '',
+        state: ''
+      };
+      
+      return {
+        propertyId: item.propertyId,
+        count: item._count.id,
+        property
+      };
+    });
+    
+    res.status(200).json(stats);
+  } catch (err) {
+    console.error("Error getting offer stats:", err);
+    res.status(500).json({
+      message: "An error occurred while fetching offer statistics",
+      error: err.message
+    });
+  }
+});

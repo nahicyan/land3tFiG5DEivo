@@ -129,7 +129,7 @@ export const Lands = () => {
                               rounded-lg shadow-md overflow-hidden 
                               transition-transform transform hover:-translate-y-1 hover:shadow-xl">
                 <img
-                  src="./dfw.jpg"
+                  src="./DFW.png"
                   alt="DFW"
                   className="w-full h-full object-cover"
                 />
@@ -150,7 +150,7 @@ export const Lands = () => {
                               rounded-lg shadow-md overflow-hidden 
                               transition-transform transform hover:-translate-y-1 hover:shadow-xl">
                 <img
-                  src="./austin.jpg"
+                  src="./Austin.png"
                   alt="Austin"
                   className="w-full h-full object-cover"
                 />
@@ -170,7 +170,7 @@ export const Lands = () => {
                               rounded-lg shadow-md overflow-hidden 
                               transition-transform transform hover:-translate-y-1 hover:shadow-xl">
                 <img
-                  src="./houston.jpg"
+                  src="./Houston.png"
                   alt="Houston"
                   className="w-full h-full object-cover"
                 />
@@ -190,7 +190,7 @@ export const Lands = () => {
                               rounded-lg shadow-md overflow-hidden 
                               transition-transform transform hover:-translate-y-1 hover:shadow-xl">
                 <img
-                  src="./sanantonio.jpg"
+                  src="./SanAntonio.png"
                   alt="San Antonio"
                   className="w-full h-full object-cover"
                 />
@@ -206,16 +206,16 @@ export const Lands = () => {
             {/* Others */}
             <div className="flex flex-col items-center">
               <h3 className="text-xl font-light mb-2 text-[#324c48]">Others</h3>
-              <div className="relative group w-full aspect-w-16 aspect-h-10 
-                              rounded-lg shadow-md overflow-hidden 
-                              transition-transform transform hover:-translate-y-1 hover:shadow-xl">
+              <div className="relative group w-full aspect-square 
+                  rounded-lg shadow-md overflow-hidden 
+                  transition-transform transform hover:-translate-y-1 hover:shadow-xl">
                 <img
                   src="./others.jpg"
                   alt="Others"
                   className="w-full h-full object-cover"
                 />
                 <div className="absolute inset-0 bg-black bg-opacity-30 flex items-center justify-center 
-                                opacity-0 group-hover:opacity-100 transition-opacity">
+                    opacity-0 group-hover:opacity-100 transition-opacity">
                   <button onClick={() => navigate("/OtherLands")} className="bg-white text-[#324c48] font-semibold py-2 px-4 rounded-lg shadow hover:shadow-lg">
                     Other Lands
                   </button>

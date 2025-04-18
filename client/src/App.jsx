@@ -51,6 +51,7 @@ import DealFinancialSummary from "@/components/Deal/DealFinancialSummary";
 import DealsList from "@/components/Deal/DealsList";
 import PaymentList from "@/components/Deal/PaymentList";
 import ProfileWarning from "./components/ProfileWarning/ProfileWarning";
+import AdminOffers from "./pages/AdminOffer/AdminOffer";
 import { Auth0ProviderWithNavigate } from "./components/Auth0/Auth0Provider";
 import { PermissionsProvider } from "./components/Auth0/PermissionsContext";
 import { PERMISSIONS } from "./utils/permissions";
@@ -152,7 +153,10 @@ function App() {
                           <Route index element={<Admin />} />
                           <Route path="add-property" element={<AddProperty />} />
                           <Route path="edit-property/:propertyId" element={<EditProperty />} />
-                          
+                          <Route
+                            path="offers"
+                            element={<AdminOffers />}
+                          />
                           {/* New Properties Management Route */}
                           {/* <Route
                             path="properties"
@@ -167,7 +171,7 @@ function App() {
                             }
                           /> */}
                           <Route path="properties" element={<AdminProperties />} />
-                          
+
                           {/* Testing Deals */}
                           <Route path="deals" element={<AdminDeals />} />
                           <Route path="deals/list" element={<DealsList />} />
@@ -273,7 +277,7 @@ function App() {
                           />
                           {/* Qualification dashboard - security disabled */}
                           <Route path="financing" element={<AdminFinancing />} />
-                          
+
                           {/* Financing applications - security disabled */}
                           <Route path="financing/applications" element={<OfferTable />} />
                         </Route>

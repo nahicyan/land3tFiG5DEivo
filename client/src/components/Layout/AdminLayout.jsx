@@ -50,6 +50,7 @@ export default function AdminLayout() {
     { text: "Buyers", icon: <PersonIcon />, path: "/admin/buyers" },
     { text: "Email Lists", icon: <ViewListIcon />, path: "/admin/buyer-lists" },
     { text: "Financing Applications", icon: <AssessmentIcon />, path: "/admin/financing" },
+    { text: "Offers", icon: <AssessmentIcon />, path: "/admin/offers" },
   ];
 
   return (
