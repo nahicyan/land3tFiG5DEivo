@@ -19,6 +19,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import {
   Select,
   SelectTrigger,
@@ -52,17 +53,18 @@ export default function Offer({ propertyData }) {
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
   
+  // Dialog states
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [dialogMessage, setDialogMessage] = useState("");
+  const [dialogType, setDialogType] = useState("success"); // "success" or "warning"
+  const [dialogData, setDialogData] = useState(null);
+  
   // Track if form has been populated to prevent multiple calls
   const [formPopulated, setFormPopulated] = useState(false);
 
   // Get user data from Auth and VIP buyer contexts
   const { user } = useAuth();
   const { isVipBuyer, vipBuyerData } = useVipBuyer();
-
-  // State for the Dialog notification
-  const [dialogOpen, setDialogOpen] = useState(false);
-  const [dialogMessage, setDialogMessage] = useState("");
-  const [dialogType, setDialogType] = useState("success"); // "success" or "warning"
 
   // Auto-populate user data when component mounts
   useEffect(() => {
@@ -184,6 +186,8 @@ export default function Offer({ propertyData }) {
     // Remove commas before converting to float
     const parsedOfferPrice = parseFloat(offerPrice.replace(/,/g, ""));
 
+    // Default offerStatus is PENDING
+    // The backend will set it to REJECTED if below minPrice or ACCEPTED if above askingPrice
     const offerData = {
       email,
       phone,
@@ -192,10 +196,13 @@ export default function Offer({ propertyData }) {
       offeredPrice: parsedOfferPrice,
       firstName,
       lastName,
+      offerStatus: "PENDING" // Include this but backend will likely override it based on business rules
     };
 
     try {
-      await api.post("/buyer/makeOffer", offerData);
+      const response = await api.post("/buyer/makeOffer", offerData);
+      // Store response data for possible usage in the dialog
+      setDialogData(response.data);
 
       // If offer is below minPrice, show a warning and do not redirect
       if (parsedOfferPrice < propertyData?.minPrice) {
@@ -213,10 +220,23 @@ export default function Offer({ propertyData }) {
       setDialogOpen(true);
     } catch (error) {
       setDialogMessage(
+        error.response?.data?.message || 
         "You've already offered this or a higher amount. Please adjust your offer to continue!"
       );
       setDialogType("warning");
       setDialogOpen(true);
+    }
+  };
+
+  // Helper function to get status badge class based on offerStatus
+  const getStatusBadgeClass = (status) => {
+    switch(status) {
+      case "ACCEPTED": return "bg-green-100 text-green-800";
+      case "PENDING": return "bg-yellow-100 text-yellow-800";
+      case "REJECTED": return "bg-red-100 text-red-800";
+      case "COUNTERED": return "bg-blue-100 text-blue-800";
+      case "EXPIRED": return "bg-purple-100 text-purple-800";
+      default: return "bg-gray-100 text-gray-800";
     }
   };
 
@@ -347,7 +367,7 @@ export default function Offer({ propertyData }) {
         </CardContent>
       </Card>
 
-      {/* Dialog Notification */}
+      {/* Dialog Notification - Original message with status info */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent className="bg-[#FFF] text-[#050002] border border-[#405025]/30 shadow-lg">
           <DialogHeader>
@@ -358,6 +378,21 @@ export default function Offer({ propertyData }) {
             </DialogTitle>
             <DialogDescription>{dialogMessage}</DialogDescription>
           </DialogHeader>
+          
+          {/* Only show offer status when we have dialog data */}
+          {dialogType === "success" && dialogData?.offer?.offerStatus && (
+            <div className="py-2">
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-medium">Status:</span>
+                <Badge 
+                  className={getStatusBadgeClass(dialogData.offer.offerStatus)}
+                >
+                  {dialogData.offer.offerStatus}
+                </Badge>
+              </div>
+            </div>
+          )}
+          
           <DialogFooter>
             <Button
               onClick={() => {

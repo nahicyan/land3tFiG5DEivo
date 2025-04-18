@@ -125,34 +125,36 @@ export default class ActivityDataProvider {
     });
   }
 
-  /**
-   * Format offer history data
-   * @private
-   * @param {Array} offerHistory - Raw offer history data
-   * @returns {Array} Formatted offer history
-   */
-  static _formatOfferHistory(offerHistory = []) {
-    if (!offerHistory || !Array.isArray(offerHistory)) {
-      console.warn('Invalid offer history data:', offerHistory);
-      return [];
-    }
-    
-    console.log('Formatting offer history:', offerHistory);
-    
-    return offerHistory.map(offer => {
-      const property = offer.property || {};
-      return {
-        propertyId: offer.propertyId,
-        propertyTitle: property.title || 'Unknown Property',
-        propertyAddress: property.streetAddress ? 
-          `${property.streetAddress}, ${property.city || ''}, ${property.state || ''}` : 
-          'Address not available',
-        amount: offer.offeredPrice,
-        status: offer.status || 'Pending',
-        timestamp: offer.timestamp
-      };
-    });
+/**
+ * Format offer history data
+ * @private
+ * @param {Array} offerHistory - Raw offer history data
+ * @returns {Array} Formatted offer history
+ */
+static _formatOfferHistory(offerHistory = []) {
+  if (!offerHistory || !Array.isArray(offerHistory)) {
+    console.warn('Invalid offer history data:', offerHistory);
+    return [];
   }
+  
+  console.log('Formatting offer history:', offerHistory);
+  
+  return offerHistory.map(offer => {
+    const property = offer.property || {};
+    return {
+      propertyId: offer.propertyId,
+      propertyTitle: property.title || 'Unknown Property',
+      propertyAddress: property.streetAddress ? 
+        `${property.streetAddress}, ${property.city || ''}, ${property.state || ''}` : 
+        'Address not available',
+      amount: offer.offeredPrice,
+      status: offer.status || 'Pending',
+      offerStatus: offer.offerStatus || 'PENDING', // Add the offerStatus field
+      timestamp: offer.timestamp,
+      id: offer.id
+    };
+  });
+}
 
   /**
    * Format email interactions data

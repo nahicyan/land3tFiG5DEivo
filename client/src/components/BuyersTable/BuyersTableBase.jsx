@@ -31,26 +31,26 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { 
-  Select, 
-  SelectContent, 
-  SelectItem, 
-  SelectTrigger, 
-  SelectValue 
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue
 } from "@/components/ui/select";
-import { 
-  Edit, 
-  Eye, 
-  Filter, 
-  Search, 
-  DollarSign, 
-  TrendingUp, 
+import {
+  Edit,
+  Eye,
+  Filter,
+  Search,
+  DollarSign,
+  TrendingUp,
   BadgeDollarSign,
   Mail,
-  PlusCircle, 
-  Trash2, 
-  Download, 
-  MoreVertical, 
+  PlusCircle,
+  Trash2,
+  Download,
+  MoreVertical,
   FileUp
 } from "lucide-react";
 
@@ -73,7 +73,7 @@ const BUYER_TYPES = [
 ];
 
 const getBuyerTypeClass = (type) => {
-  switch(type) {
+  switch (type) {
     case 'CashBuyer': return 'bg-green-50 text-green-600 border-green-200';
     case 'Builder': return 'bg-blue-50 text-blue-600 border-blue-200';
     case 'Developer': return 'bg-purple-50 text-purple-600 border-purple-200';
@@ -89,20 +89,20 @@ export default function BuyersTableBase({
   buyers = [],
   selectedBuyers = [],
   searchQuery = "",
-  setSearchQuery = () => {},
+  setSearchQuery = () => { },
   areaFilter = "all",
-  setAreaFilter = () => {},
+  setAreaFilter = () => { },
   buyerTypeFilter = "all",
-  setBuyerTypeFilter = () => {},
+  setBuyerTypeFilter = () => { },
   sourceFilter = "all",
-  setSourceFilter = () => {},
-  onSelectBuyer = () => {},
-  onSelectAll = () => {},
-  onDeleteSelected = () => {},
-  setEmailDialogOpen = () => {},
-  setBulkImportOpen = () => {},
-  onExport = () => {},
-  onViewActivity = () => {},
+  setSourceFilter = () => { },
+  onSelectBuyer = () => { },
+  onSelectAll = () => { },
+  onDeleteSelected = () => { },
+  setEmailDialogOpen = () => { },
+  setBulkImportOpen = () => { },
+  onExport = () => { },
+  onViewActivity = () => { },
   navigate = null,
 }) {
   const routerNavigate = useNavigate();
@@ -132,31 +132,31 @@ export default function BuyersTableBase({
     if (usingProvidedData) {
       // Use the buyers passed in props 
       const buyersToUse = filteredBuyers.length > 0 ? filteredBuyers : buyers;
-      
+
       // Get property details for profit calculation
       fetchPropertyDetailsForBuyers(buyersToUse);
       setIsLoading(false);
-    } 
+    }
     // Otherwise use fetched data
     else if (fetchedBuyers && Array.isArray(fetchedBuyers)) {
       setInternalBuyerData(fetchedBuyers);
-      
+
       // Filter the fetched buyers based on internal state
       const filtered = fetchedBuyers.filter(buyer => {
-        const searchMatch = 
+        const searchMatch =
           searchTerm === "" ||
           buyer.firstName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
           buyer.lastName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
           buyer.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
           buyer.phone?.includes(searchTerm);
-        
+
         const typeMatch = filterType === "" || buyer.buyerType === filterType;
-        
+
         return searchMatch && typeMatch;
       });
-      
+
       setInternalFilteredBuyers(filtered);
-      
+
       // Get property details for profit calculation
       fetchPropertyDetailsForBuyers(fetchedBuyers);
       setIsLoading(false);
@@ -166,7 +166,7 @@ export default function BuyersTableBase({
   // Helper function to fetch property details for offers
   const fetchPropertyDetailsForBuyers = async (buyersArray) => {
     const propertyIds = new Set();
-    
+
     buyersArray.forEach(buyer => {
       if (buyer.offers && buyer.offers.length > 0) {
         buyer.offers.forEach(offer => {
@@ -174,7 +174,7 @@ export default function BuyersTableBase({
         });
       }
     });
-    
+
     // Fetch details for each property to get purchase prices
     const details = {};
     for (const id of propertyIds) {
@@ -185,7 +185,7 @@ export default function BuyersTableBase({
         console.error(`Error fetching property ${id}:`, error);
       }
     }
-    
+
     setPropertyDetails(details);
   };
 
@@ -196,21 +196,21 @@ export default function BuyersTableBase({
   // Calculate profit for an offer
   const calculateProfit = (offer) => {
     if (!offer || !propertyDetails[offer.propertyId]) return null;
-    
+
     const property = propertyDetails[offer.propertyId];
     const purchasePrice = property.purchasePrice || 0;
     const sellingPrice = offer.offeredPrice || 0;
-    
+
     return sellingPrice - purchasePrice;
   };
 
   // Format profit with color and sign
   const formatProfit = (profit) => {
     if (profit === null) return "-";
-    
+
     const formattedValue = formatPrice(Math.abs(profit));
     const isPositive = profit > 0;
-    
+
     return (
       <span className={`flex items-center ${isPositive ? 'text-green-600' : 'text-red-600'}`}>
         {isPositive ? <TrendingUp className="w-4 h-4 mr-1" /> : <TrendingUp className="w-4 h-4 mr-1 transform rotate-180" />}
@@ -218,7 +218,7 @@ export default function BuyersTableBase({
       </span>
     );
   };
-  
+
   // Get activity score for a buyer
   const getActivityScore = (buyer) => {
     // For VIP buyers with auth0Id, we assume they have actual activity data
@@ -229,12 +229,12 @@ export default function BuyersTableBase({
       const hash = Array.from(idStr).reduce((acc, char) => acc + char.charCodeAt(0), 0);
       return Math.min(100, Math.max(20, hash % 100));
     }
-    
+
     // For non-VIP buyers, calculate a basic score based on offers
     if (buyer.offers && buyer.offers.length > 0) {
       return Math.min(85, 30 + (buyer.offers.length * 15));
     }
-    
+
     // Default low score for buyers without activity
     return 25;
   };
@@ -260,7 +260,7 @@ export default function BuyersTableBase({
       <CardHeader className="bg-[#f0f5f4] border-b">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <CardTitle>Buyers List</CardTitle>
-          
+
           <div className="flex flex-wrap gap-2">
             <Button
               size="sm"
@@ -271,7 +271,7 @@ export default function BuyersTableBase({
               <PlusCircle className="h-4 w-4 mr-2" />
               Add Buyer
             </Button>
-            
+
             <Button
               size="sm"
               variant="outline"
@@ -281,7 +281,7 @@ export default function BuyersTableBase({
               <FileUp className="h-4 w-4 mr-2" />
               Import CSV
             </Button>
-            
+
             <Button
               size="sm"
               variant="outline"
@@ -294,7 +294,7 @@ export default function BuyersTableBase({
           </div>
         </div>
       </CardHeader>
-      
+
       <CardContent className="p-0">
         {/* Search and Filters */}
         <div className="p-4 border-b grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -307,7 +307,7 @@ export default function BuyersTableBase({
               className="pl-9 border-[#324c48]/30"
             />
           </div>
-          
+
           <div className="flex space-x-2">
             <div className="w-1/2">
               <Select value={areaFilter} onValueChange={setAreaFilter}>
@@ -325,7 +325,7 @@ export default function BuyersTableBase({
                 </SelectContent>
               </Select>
             </div>
-            
+
             <div className="w-1/2">
               <Select value={usingProvidedData ? buyerTypeFilter : filterType} onValueChange={usingProvidedData ? setBuyerTypeFilter : setFilterType}>
                 <SelectTrigger className="border-[#324c48]/30">
@@ -343,7 +343,7 @@ export default function BuyersTableBase({
               </Select>
             </div>
           </div>
-          
+
           <div>
             <Select value={sourceFilter} onValueChange={setSourceFilter}>
               <SelectTrigger className="border-[#324c48]/30">
@@ -364,7 +364,7 @@ export default function BuyersTableBase({
             </Select>
           </div>
         </div>
-        
+
         {/* Bulk Actions */}
         {selectedBuyers.length > 0 && (
           <div className="p-3 bg-[#f0f5f4] border-b flex flex-col sm:flex-row sm:items-center justify-between gap-2">
@@ -372,15 +372,15 @@ export default function BuyersTableBase({
               {selectedBuyers.length} buyers selected
             </span>
             <div className="flex gap-2">
-              <Button 
-                size="sm" 
+              <Button
+                size="sm"
                 className="bg-[#324c48] text-white"
                 onClick={() => setEmailDialogOpen(true)}
               >
                 <Mail className="h-4 w-4 mr-2" />
                 Email Selected
               </Button>
-              
+
               <Button
                 size="sm"
                 variant="outline"
@@ -393,7 +393,7 @@ export default function BuyersTableBase({
             </div>
           </div>
         )}
-        
+
         {/* Buyers Table */}
         <div className="overflow-x-auto">
           <Table>
@@ -423,23 +423,23 @@ export default function BuyersTableBase({
               {buyersToDisplay.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={11} className="h-24 text-center">
-                    {(searchQuery || searchTerm || areaFilter !== "all" || buyerTypeFilter !== "all" || sourceFilter !== "all") 
-                      ? "No buyers found matching your filters." 
+                    {(searchQuery || searchTerm || areaFilter !== "all" || buyerTypeFilter !== "all" || sourceFilter !== "all")
+                      ? "No buyers found matching your filters."
                       : "No buyers found. Add your first buyer to get started!"}
                   </TableCell>
                 </TableRow>
               ) : (
                 buyersToDisplay.map((buyer) => {
                   const activityScore = getActivityScore(buyer);
-                  
+
                   // Get the most recent offer
                   const latestOffer = buyer.offers && buyer.offers.length > 0
                     ? buyer.offers[0] // Already sorted by descending date
                     : null;
-                  
+
                   // Calculate potential profit
                   const profit = calculateProfit(latestOffer);
-                  
+
                   return (
                     <TableRow key={buyer.id} className="group">
                       <TableCell>
@@ -473,8 +473,8 @@ export default function BuyersTableBase({
                         </div>
                       </TableCell>
                       <TableCell>
-                        <Badge 
-                          variant="outline" 
+                        <Badge
+                          variant="outline"
                           className={getBuyerTypeClass(buyer.buyerType)}
                         >
                           {buyer.buyerType || 'Unknown'}
@@ -483,18 +483,17 @@ export default function BuyersTableBase({
                       <TableCell>
                         <div className="flex flex-col items-center">
                           <div className="w-full h-2 bg-gray-200 rounded-full mb-1">
-                            <div 
-                              className={`h-full rounded-full ${
-                                activityScore >= 80 ? 'bg-green-500' :
-                                activityScore >= 50 ? 'bg-yellow-500' :
-                                'bg-red-500'
-                              }`}
+                            <div
+                              className={`h-full rounded-full ${activityScore >= 80 ? 'bg-green-500' :
+                                  activityScore >= 50 ? 'bg-yellow-500' :
+                                    'bg-red-500'
+                                }`}
                               style={{ width: `${activityScore}%` }}
                             />
                           </div>
                           <div className="flex items-center gap-1">
-                            <Badge 
-                              variant="outline" 
+                            <Badge
+                              variant="outline"
                               className="text-xs cursor-pointer hover:bg-gray-100"
                               onClick={() => onViewActivity(buyer)}
                             >
@@ -511,8 +510,24 @@ export default function BuyersTableBase({
                               <DollarSign className="w-3.5 h-3.5 mr-1" />
                               {formatPrice(latestOffer.offeredPrice)}
                             </div>
-                            <div className="text-xs text-gray-500">
-                              {new Date(latestOffer.timestamp).toLocaleDateString()}
+                            <div className="flex items-center justify-between mt-1">
+                              <div className="text-xs text-gray-500">
+                                {new Date(latestOffer.timestamp).toLocaleDateString()}
+                              </div>
+                              {latestOffer.offerStatus && (
+                                <Badge
+                                  variant="outline"
+                                  className={`
+              ${latestOffer.offerStatus === 'ACCEPTED' ? 'bg-green-50 text-green-600 border-green-200' : ''}
+              ${latestOffer.offerStatus === 'PENDING' ? 'bg-yellow-50 text-yellow-600 border-yellow-200' : ''}
+              ${latestOffer.offerStatus === 'REJECTED' ? 'bg-red-50 text-red-600 border-red-200' : ''}
+              ${latestOffer.offerStatus === 'COUNTERED' ? 'bg-blue-50 text-blue-600 border-blue-200' : ''}
+              ${latestOffer.offerStatus === 'EXPIRED' ? 'bg-purple-50 text-purple-600 border-purple-200' : ''}
+            `}
+                                >
+                                  {latestOffer.offerStatus}
+                                </Badge>
+                              )}
                             </div>
                           </div>
                         ) : (
@@ -569,7 +584,7 @@ export default function BuyersTableBase({
                               View Activity
                             </DropdownMenuItem>
                             <DropdownMenuSeparator />
-                            <DropdownMenuItem 
+                            <DropdownMenuItem
                               className="text-red-600"
                               onClick={() => {
                                 onSelectBuyer(buyer.id);
@@ -589,13 +604,13 @@ export default function BuyersTableBase({
           </Table>
         </div>
       </CardContent>
-      
+
       <CardFooter className="justify-between py-4 border-t">
         <div className="text-sm text-gray-500">
           Showing {buyersToDisplay.length} of {allBuyers.length} buyers
         </div>
-        <Button 
-          variant="outline" 
+        <Button
+          variant="outline"
           className="border-[#324c48] text-[#324c48]"
           onClick={() => navigateTo("/admin/buyers/create")}
         >

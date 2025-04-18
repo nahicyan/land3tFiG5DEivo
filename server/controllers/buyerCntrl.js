@@ -68,6 +68,10 @@ export const makeOffer = asyncHandler(async (req, res) => {
           data: {
             offeredPrice,
             timestamp: new Date(),
+            // Status remains PENDING unless it's above asking price
+            offerStatus: parseFloat(offeredPrice) >= parseFloat(property.askingPrice) 
+              ? "ACCEPTED" 
+              : "PENDING"
           },
         });
 
@@ -92,13 +96,25 @@ export const makeOffer = asyncHandler(async (req, res) => {
       }
     }
 
-    // 4. Create a new offer
+    // 4. Create a new offer with appropriate status
+    let offerStatus = "PENDING";
+    
+    // If offer is at or above asking price, auto-accept
+    if (parseFloat(offeredPrice) >= parseFloat(property.askingPrice)) {
+      offerStatus = "ACCEPTED";
+    }
+    // If offer is below minimum price, auto-reject
+    else if (property.minPrice && parseFloat(offeredPrice) < parseFloat(property.minPrice)) {
+      offerStatus = "REJECTED";
+    }
+
     const newOffer = await prisma.offer.create({
       data: {
         propertyId,
         offeredPrice,
         buyerId: buyer.id,
         timestamp: new Date(),
+        offerStatus, // Set the calculated status
       },
     });
 
@@ -120,7 +136,9 @@ export const makeOffer = asyncHandler(async (req, res) => {
 
     // 6. Send response for successful offer submission
     res.status(201).json({
-      message: "Offer created successfully.",
+      message: offerStatus === "ACCEPTED" 
+        ? "Congratulations! Your offer has been automatically accepted."
+        : "Offer created successfully.",
       offer: newOffer,
     });
 

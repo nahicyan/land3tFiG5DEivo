@@ -232,25 +232,28 @@ const ActivityWidget = () => {
     }
   };
 
-  // Function to get activity description
-  const getActivityDescription = (activity) => {
-    const { type, data } = activity;
-    
-    switch (type) {
-      case 'property_view':
-        return `Viewed ${data.propertyTitle || 'a property'}`;
-      case 'search':
-        return `Searched for "${data.query || 'properties'}"`;
-      case 'page_visit':
-        return `Visited ${data.url || data.path || 'a page'}`;
-      case 'offer':
-        return `Made an offer of ${formatPrice(data.amount || data.offeredPrice || 0)}`;
-      case 'click':
-        return `Clicked on ${data.elementType || data.element || 'an element'}`;
-      default:
-        return 'Performed an action';
-    }
-  };
+// Function to get activity description
+const getActivityDescription = (activity) => {
+  const { type, data } = activity;
+  
+  switch (type) {
+    case 'property_view':
+      return `Viewed ${data.propertyTitle || 'a property'}`;
+    case 'search':
+      return `Searched for "${data.query || 'properties'}"`;
+    case 'page_visit':
+      return `Visited ${data.url || data.path || 'a page'}`;
+    case 'offer':
+      // Include status if available
+      return `Made an offer of ${formatPrice(data.amount || data.offeredPrice || 0)}${
+        data.offerStatus ? ` (${data.offerStatus})` : ''
+      }`;
+    case 'click':
+      return `Clicked on ${data.elementType || data.element || 'an element'}`;
+    default:
+      return 'Performed an action';
+  }
+};
 
   // Function to get secondary text for activity
   const getActivitySecondaryText = (activity) => {

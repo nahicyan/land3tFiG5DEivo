@@ -15,6 +15,7 @@ import {
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
 
 const fetchOffers = async (propertyId) => {
@@ -22,6 +23,24 @@ const fetchOffers = async (propertyId) => {
     `${import.meta.env.VITE_SERVER_URL}/api/buyer/offers/property/${propertyId}`
   );
   return data;
+};
+
+// Helper function to get status badge color based on offerStatus
+const getStatusBadgeClass = (status) => {
+  switch(status) {
+    case "ACCEPTED":
+      return "bg-green-100 text-green-700 border-green-200";
+    case "PENDING":
+      return "bg-yellow-100 text-yellow-700 border-yellow-200";
+    case "REJECTED":
+      return "bg-red-100 text-red-700 border-red-200";
+    case "COUNTERED":
+      return "bg-blue-100 text-blue-700 border-blue-200";
+    case "EXPIRED":
+      return "bg-purple-100 text-purple-700 border-purple-200";
+    default:
+      return "bg-gray-100 text-gray-700 border-gray-200";
+  }
 };
 
 export default function OfferTable() {
@@ -76,6 +95,7 @@ export default function OfferTable() {
               <TableHead>Email</TableHead>
               <TableHead>Phone</TableHead>
               <TableHead>Offer Price</TableHead>
+              <TableHead>Status</TableHead>
               <TableHead>Date</TableHead>
             </TableRow>
           </TableHeader>
@@ -96,7 +116,14 @@ export default function OfferTable() {
                       ? `$${offer.offeredPrice.toLocaleString("en-US")}`
                       : "N/A"}
                   </TableCell>
-
+                  <TableCell>
+                    <Badge 
+                      variant="outline" 
+                      className={getStatusBadgeClass(offer.offerStatus || "PENDING")}
+                    >
+                      {offer.offerStatus || "PENDING"}
+                    </Badge>
+                  </TableCell>
                   <TableCell>
                     {format(new Date(offer.timestamp), "PPpp")}
                   </TableCell>
@@ -105,7 +132,7 @@ export default function OfferTable() {
             ) : (
               <TableRow>
                 <TableCell
-                  colSpan="5"
+                  colSpan="6"
                   className="text-center text-gray-500 py-4"
                 >
                   No offers yet.

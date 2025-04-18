@@ -176,7 +176,7 @@ model Offer {
   timestamp    DateTime @default(now())
   buyerId      String   @db.ObjectId
   buyer        Buyer    @relation("BuyerOffers", fields: [buyerId], references: [id])
-  
+  offerStatus  OfferStatus @default(PENDING) 
   // Audit fields
   createdById  String?  @db.ObjectId
   updatedById  String?  @db.ObjectId
@@ -184,6 +184,15 @@ model Offer {
   // Track modifications
   modificationHistory Json?
 }
+
+enum OfferStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+  COUNTERED
+  EXPIRED
+}
+
 
 //---------------------- Buyer ----------------------//
 

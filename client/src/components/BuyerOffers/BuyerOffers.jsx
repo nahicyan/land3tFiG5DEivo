@@ -24,6 +24,24 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ArrowLeft } from "lucide-react";
 
+// Helper function to get status badge styles
+const getStatusBadgeClass = (status) => {
+  switch(status) {
+    case "ACCEPTED":
+      return "bg-green-100 text-green-800";
+    case "PENDING":
+      return "bg-yellow-100 text-yellow-800";
+    case "REJECTED":
+      return "bg-red-100 text-red-800";
+    case "COUNTERED":
+      return "bg-blue-100 text-blue-800";
+    case "EXPIRED":
+      return "bg-purple-100 text-purple-800";
+    default:
+      return "bg-gray-100 text-gray-800";
+  }
+};
+
 export default function BuyerOffers() {
   const { buyerId } = useParams();
   const navigate = useNavigate();
@@ -166,6 +184,7 @@ export default function BuyerOffers() {
                   <TableHead>Property</TableHead>
                   <TableHead>Address</TableHead>
                   <TableHead className="text-right">Offered Price</TableHead>
+                  <TableHead>Status</TableHead>
                   <TableHead>Actions</TableHead>
                 </TableRow>
               </TableHeader>
@@ -197,6 +216,13 @@ export default function BuyerOffers() {
                       </TableCell>
                       <TableCell className="text-right font-semibold">
                         ${offer.offeredPrice.toLocaleString()}
+                      </TableCell>
+                      <TableCell>
+                        <Badge 
+                          className={getStatusBadgeClass(offer.offerStatus || "PENDING")}
+                        >
+                          {offer.offerStatus || "PENDING"}
+                        </Badge>
                       </TableCell>
                       <TableCell>
                         <Button 

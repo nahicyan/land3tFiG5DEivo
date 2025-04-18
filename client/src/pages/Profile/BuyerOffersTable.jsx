@@ -82,8 +82,6 @@ const BuyerOffersTable = () => {
         fetchOffers();
     }, [vipBuyerData]);
 
-    // We're now using the shared formatCurrency helper from profileUtils.js
-
     // Handle click to view property details
     const handleViewProperty = (propertyId) => {
         navigate(`/properties/${propertyId}`);
@@ -137,47 +135,46 @@ const BuyerOffersTable = () => {
                             </TableRow>
                         </TableHeader>
                         <TableBody>
-                            {offers.map((offer) => (
-                                <TableRow key={offer.id}>
-                                    <TableCell>
-                                        {propertyDetails[offer.propertyId]?.streetAddress ? (
-                                            <span>
-                                                {propertyDetails[offer.propertyId].streetAddress}
-                                                {propertyDetails[offer.propertyId]?.city && (
-                                                    <span>, {propertyDetails[offer.propertyId].city}</span>
-                                                )}
-                                            </span>
-                                        ) : "N/A"}
-                                    </TableCell>
-                                    <TableCell className="font-medium text-green-600">
-                                        {formatCurrency(offer.offeredPrice)}
-                                    </TableCell>
-                                    <TableCell>
-                                        {formatDate(offer.timestamp)}
-                                    </TableCell>
-                                    <TableCell>
-                                        {(() => {
-                                            const status = offer.status || "Pending";
-                                            const colors = getStatusColors(status);
-                                            return (
-                                                <span className={`px-2 py-1 rounded-full text-xs font-medium ${colors.bg} ${colors.text}`}>
-                                                    {status}
+                            {offers.map((offer) => {
+                                const status = offer.offerStatus || "PENDING";
+                                const colors = getStatusColors(status);
+                                
+                                return (
+                                    <TableRow key={offer.id}>
+                                        <TableCell>
+                                            {propertyDetails[offer.propertyId]?.streetAddress ? (
+                                                <span>
+                                                    {propertyDetails[offer.propertyId].streetAddress}
+                                                    {propertyDetails[offer.propertyId]?.city && (
+                                                        <span>, {propertyDetails[offer.propertyId].city}</span>
+                                                    )}
                                                 </span>
-                                            );
-                                        })()}
-                                    </TableCell>
-                                    <TableCell>
-                                        <Button
-                                            variant="ghost"
-                                            size="sm"
-                                            onClick={() => handleViewProperty(offer.propertyId)}
-                                        >
-                                            <Eye className="h-4 w-4 mr-1" />
-                                            View
-                                        </Button>
-                                    </TableCell>
-                                </TableRow>
-                            ))}
+                                            ) : "N/A"}
+                                        </TableCell>
+                                        <TableCell className="font-medium text-green-600">
+                                            {formatCurrency(offer.offeredPrice)}
+                                        </TableCell>
+                                        <TableCell>
+                                            {formatDate(offer.timestamp)}
+                                        </TableCell>
+                                        <TableCell>
+                                            <span className={`px-2 py-1 rounded-full text-xs font-medium ${colors.bg} ${colors.text}`}>
+                                                {status}
+                                            </span>
+                                        </TableCell>
+                                        <TableCell>
+                                            <Button
+                                                variant="ghost"
+                                                size="sm"
+                                                onClick={() => handleViewProperty(offer.propertyId)}
+                                            >
+                                                <Eye className="h-4 w-4 mr-1" />
+                                                View
+                                            </Button>
+                                        </TableCell>
+                                    </TableRow>
+                                );
+                            })}
                         </TableBody>
                     </Table>
                 )}

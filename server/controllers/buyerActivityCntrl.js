@@ -51,34 +51,85 @@ export const recordBuyerActivity = asyncHandler(async (req, res) => {
           continue;
         }
         
-        // Create the activity record
-        const createdActivity = await prisma.buyerActivity.create({
-          data: {
-            eventType: type,
-            buyerId,
-            timestamp: timestamp ? new Date(timestamp) : new Date(),
-            eventData: {
-              ...data,
-              ...(type === 'search' || type === 'search_query' ? {
+        // Special handling for offer_submission events
+        if (type === 'offer_submission') {
+          // Include offerStatus in the activity record if available
+          const offerStatus = data.offerStatus || data.status || 'PENDING';
+          
+          // Create the activity record with offer status
+          const createdActivity = await prisma.buyerActivity.create({
+            data: {
+              eventType: type,
+              buyerId,
+              timestamp: timestamp ? new Date(timestamp) : new Date(),
+              eventData: {
+                ...data,
+                offerStatus, // Store the offer status
+                propertyId: data.propertyId || null,
+                offeredPrice: data.offeredPrice || data.amount || 0,
+                status: offerStatus // For backward compatibility
+              },
+              sessionId: data?.sessionId || null,
+              page: data?.path || data?.url || null,
+              propertyId: data?.propertyId || null,
+              interactionType: 'offer',
+              ipAddress: req.ip || null,
+              userAgent: req.headers["user-agent"] || null
+            }
+          });
+          
+          console.log(`Successfully recorded ${type} event with status ${offerStatus}:`, createdActivity.id);
+          recordedEvents++;
+        } 
+        // Handle search events
+        else if (type === 'search' || type === 'search_query') {
+          const createdActivity = await prisma.buyerActivity.create({
+            data: {
+              eventType: type,
+              buyerId,
+              timestamp: timestamp ? new Date(timestamp) : new Date(),
+              eventData: {
+                ...data,
                 searchType: data.searchType || 'standard',
                 query: data.query || '',
                 resultsCount: data.resultsCount || 0,
                 area: data.area || null,
                 context: data.context || null,
                 filters: data.filters || {}
-              } : {})
-            },
-            sessionId: data?.sessionId || null,
-            page: data?.path || data?.url || null,
-            propertyId: data?.propertyId || null,
-            interactionType: data?.elementType || (type === 'search' ? 'search' : null),
-            ipAddress: req.ip || null,
-            userAgent: req.headers["user-agent"] || null
-          }
-        });
-        
-        console.log(`Successfully recorded ${type} event:`, createdActivity.id);
-        recordedEvents++;
+              },
+              sessionId: data?.sessionId || null,
+              page: data?.path || data?.url || null,
+              propertyId: data?.propertyId || null,
+              interactionType: 'search',
+              ipAddress: req.ip || null,
+              userAgent: req.headers["user-agent"] || null
+            }
+          });
+          
+          console.log(`Successfully recorded ${type} event:`, createdActivity.id);
+          recordedEvents++;
+        }
+        // Handle all other event types
+        else {
+          // Create the standard activity record
+          const createdActivity = await prisma.buyerActivity.create({
+            data: {
+              eventType: type,
+              buyerId,
+              timestamp: timestamp ? new Date(timestamp) : new Date(),
+              eventData: data,
+              sessionId: data?.sessionId || null,
+              page: data?.path || data?.url || null,
+              propertyId: data?.propertyId || null,
+              interactionType: data?.elementType || (type === 'search' ? 'search' : null),
+              ipAddress: req.ip || null,
+              userAgent: req.headers["user-agent"] || null
+            }
+          });
+          
+          console.log(`Successfully recorded ${type} event:`, createdActivity.id);
+          recordedEvents++;
+        }
       } catch (eventError) {
         console.error("Error recording activity event:", eventError);
         errors.push({ event, error: eventError.message });

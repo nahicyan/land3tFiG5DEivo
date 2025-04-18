@@ -254,51 +254,53 @@ const BuyerDetailTabs = ({ buyer }) => {
   }, [buyer]);
 
   // Process transactions from buyer offers
-  const transactions = useMemo(() => {
-    if (!buyer?.offers || !Array.isArray(buyer.offers)) {
-      return [];
+// Process transactions from buyer offers
+const transactions = useMemo(() => {
+  if (!buyer?.offers || !Array.isArray(buyer.offers)) {
+    return [];
+  }
+
+  return buyer.offers.map(offer => {
+    const property = propertyDetails[offer.propertyId] || {};
+    
+    // Calculate profit if we have purchase price data
+    let profit = null;
+    let profitMargin = 0;
+    
+    if (property.purchasePrice && offer.offeredPrice) {
+      profit = offer.offeredPrice - property.purchasePrice;
+      profitMargin = property.purchasePrice > 0 
+        ? (profit / property.purchasePrice) * 100
+        : 0;
     }
 
-    return buyer.offers.map(offer => {
-      const property = propertyDetails[offer.propertyId] || {};
+    // Use the offerStatus from the backend if available
+    // Otherwise, use the previous logic as a fallback
+    const status = offer.offerStatus || (() => {
+      const daysSinceOffer = Math.floor(
+        (new Date() - new Date(offer.timestamp)) / (1000 * 60 * 60 * 24)
+      );
       
-      // Calculate profit if we have purchase price data
-      let profit = null;
-      let profitMargin = 0;
+      if (daysSinceOffer < 3) return "PENDING";
+      if (offer.offeredPrice >= (property.askingPrice || 0)) return "ACCEPTED";
+      if (property.minPrice && offer.offeredPrice < property.minPrice) return "REJECTED";
       
-      if (property.purchasePrice && offer.offeredPrice) {
-        profit = offer.offeredPrice - property.purchasePrice;
-        profitMargin = property.purchasePrice > 0 
-          ? (profit / property.purchasePrice) * 100
-          : 0;
-      }
+      // For older offers with price between min and asking, randomly assign status
+      const statuses = ["ACCEPTED", "REJECTED", "COUNTERED", "EXPIRED"];
+      return statuses[Math.floor(Math.random() * statuses.length)];
+    })();
 
-      // Determine status based on offer data - in a real app, this would come from the backend
-      const status = (() => {
-        const daysSinceOffer = Math.floor(
-          (new Date() - new Date(offer.timestamp)) / (1000 * 60 * 60 * 24)
-        );
-        
-        if (daysSinceOffer < 3) return "Pending";
-        if (offer.offeredPrice >= (property.askingPrice || 0)) return "Accepted";
-        if (property.minPrice && offer.offeredPrice < property.minPrice) return "Rejected";
-        
-        // For older offers with price between min and asking, randomly assign status
-        const statuses = ["Accepted", "Rejected", "Countered", "Closed"];
-        return statuses[Math.floor(Math.random() * statuses.length)];
-      })();
-
-      return {
-        id: offer.id,
-        date: new Date(offer.timestamp),
-        property,
-        offeredPrice: offer.offeredPrice,
-        profit,
-        profitMargin,
-        status
-      };
-    }).sort((a, b) => b.date - a.date);
-  }, [buyer, propertyDetails]);
+    return {
+      id: offer.id,
+      date: new Date(offer.timestamp),
+      property,
+      offeredPrice: offer.offeredPrice,
+      profit,
+      profitMargin,
+      status
+    };
+  }).sort((a, b) => b.date - a.date);
+}, [buyer, propertyDetails]);
 
   // Helper function to get status badge color
   const getStatusBadgeClass = (status) => {
@@ -307,7 +309,7 @@ const BuyerDetailTabs = ({ buyer }) => {
       case "Pending": return "bg-yellow-100 text-yellow-800";
       case "Rejected": return "bg-red-100 text-red-800";
       case "Countered": return "bg-blue-100 text-blue-800";
-      case "Closed": return "bg-purple-100 text-purple-800";
+      case "Expired": return "bg-purple-100 text-purple-800";
       default: return "bg-gray-100 text-gray-800";
     }
   };
@@ -369,7 +371,7 @@ const BuyerDetailTabs = ({ buyer }) => {
     const totalProfit = transactions.reduce((sum, t) => sum + (t.profit || 0), 0);
     const averageProfit = totalOffers > 0 ? totalProfit / totalOffers : 0;
     const successRate = transactions.filter(t => 
-      t.status === "Accepted" || t.status === "Closed"
+      t.status === "Accepted" || t.status === "Expired"
     ).length / totalOffers * 100;
     
     const highestProfit = Math.max(...transactions.map(t => t.profit || 0));
@@ -706,6 +708,7 @@ const BuyerDetailTabs = ({ buyer }) => {
 };
 
 // Separate component for transactions to keep the file organized
+
 const TransactionsView = ({ transactions, metrics, getStatusBadgeClass, formatProfit }) => {
   return (
     <Card>

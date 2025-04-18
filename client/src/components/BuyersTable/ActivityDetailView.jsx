@@ -341,6 +341,7 @@ const ActivityDetail = ({ activity, onBack, loading }) => {
         </div>
       )
     },
+
     offerHistory: {
       title: "Offer History",
       icon: <DollarSign className="h-5 w-5 text-green-600" />,
@@ -354,12 +355,13 @@ const ActivityDetail = ({ activity, onBack, loading }) => {
               (typeof item.offeredPrice === 'number' ? 
                 item.offeredPrice.toLocaleString() : '0')}</span>
             <Badge className={`
-              ${item.status === 'Pending' ? 'bg-yellow-100 text-yellow-800' : ''}
-              ${item.status === 'Accepted' ? 'bg-green-100 text-green-800' : ''}
-              ${item.status === 'Rejected' ? 'bg-red-100 text-red-800' : ''}
-              ${item.status === 'Countered' ? 'bg-blue-100 text-blue-800' : ''}
+              ${item.status === 'PENDING' || item.offerStatus === 'PENDING' ? 'bg-yellow-100 text-yellow-800' : ''}
+              ${item.status === 'ACCEPTED' || item.offerStatus === 'ACCEPTED' ? 'bg-green-100 text-green-800' : ''}
+              ${item.status === 'REJECTED' || item.offerStatus === 'REJECTED' ? 'bg-red-100 text-red-800' : ''}
+              ${item.status === 'COUNTERED' || item.offerStatus === 'COUNTERED' ? 'bg-blue-100 text-blue-800' : ''}
+              ${item.status === 'EXPIRED' || item.offerStatus === 'EXPIRED' ? 'bg-purple-100 text-purple-800' : ''}
             `}>
-              {item.status || 'Pending'}
+              {item.offerStatus || item.status || 'Pending'}
             </Badge>
           </div>
           <div className="text-sm mt-1">
